@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BMW 530i</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">BMW · 530i</div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-text">
+      <h1 id="hero-title"></h1>
+      <div class="subtitle" id="hero-subtitle"></div>
+      <div class="price" id="hero-price"></div>
+      <a class="cta" id="hero-cta" target="_blank" rel="noopener"></a>
+    </div>
+    <div class="hero-image">
+      <img id="hero-image" alt="BMW 530i" />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">01</div>
+      <h2 class="section-title" id="t-specs"></h2>
+    </div>
+    <div class="specs-grid" id="specs"></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">02</div>
+      <h2 class="section-title" id="t-features"></h2>
+    </div>
+    <div class="features-grid" id="features"></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">03</div>
+      <h2 class="section-title" id="t-description"></h2>
+    </div>
+    <p class="description" id="description"></p>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">04</div>
+      <h2 class="section-title" id="t-gallery"></h2>
+    </div>
+    <div class="gallery" id="gallery"></div>
+  </section>
+
+  <section class="contact">
+    <h2 id="t-contact"></h2>
+    <p id="t-contact-text"></p>
+    <a class="cta" id="contact-cta" target="_blank" rel="noopener"></a>
+  </section>
+
+  <footer class="footer">
+    <div>© BMW 530i</div>
+    <div id="footer-tg"></div>
+  </footer>
+
+  <div class="lightbox" id="lightbox">
+    <button class="lb-close" aria-label="Close">×</button>
+    <button class="lb-nav lb-prev" aria-label="Previous">‹</button>
+    <img id="lightbox-img" alt="" />
+    <button class="lb-nav lb-next" aria-label="Next">›</button>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    const TG_URL = `https://t.me/${CONFIG.telegram}`;
+    let lightboxIndex = 0;
+
+    function render() {
+      // Hero
+      document.getElementById('hero-title').textContent    = CONFIG.hero.title;
+      document.getElementById('hero-subtitle').textContent = CONFIG.hero.subtitle;
+      document.getElementById('hero-price').textContent    = CONFIG.price;
+      const heroCta = document.getElementById('hero-cta');
+      heroCta.textContent = CONFIG.hero.cta;
+      heroCta.href = TG_URL;
+      document.getElementById('hero-image').src = CONFIG.photos[0];
+
+      // Section labels
+      document.getElementById('t-specs').textContent        = CONFIG.labels.specs;
+      document.getElementById('t-features').textContent     = CONFIG.labels.features;
+      document.getElementById('t-description').textContent  = CONFIG.labels.description;
+      document.getElementById('t-gallery').textContent      = CONFIG.labels.gallery;
+      document.getElementById('t-contact').textContent      = CONFIG.labels.contact;
+      document.getElementById('t-contact-text').textContent = CONFIG.labels.contactText;
+
+      // Specs
+      document.getElementById('specs').innerHTML = CONFIG.specs.map(s => `
+        <div class="spec-row">
+          <span class="label">${s.label}</span>
+          <span class="value">${s.value}</span>
+        </div>
+      `).join('');
+
+      // Features
+      document.getElementById('features').innerHTML = CONFIG.features
+        .map(f => `<div class="feature">${f}</div>`)
+        .join('');
+
+      // Description
+      document.getElementById('description').textContent = CONFIG.description;
+
+      // Gallery
+      const galleryEl = document.getElementById('gallery');
+      galleryEl.innerHTML = CONFIG.photos.map((src, i) => `
+        <div class="cell" data-index="${i}">
+          <img src="${src}" alt="Фото ${i + 1}" loading="lazy" />
+        </div>
+      `).join('');
+      galleryEl.querySelectorAll('.cell').forEach(cell => {
+        cell.addEventListener('click', () => openLightbox(+cell.dataset.index));
+      });
+
+      // Contact CTA
+      const cCta = document.getElementById('contact-cta');
+      cCta.textContent = `@${CONFIG.telegram}`;
+      cCta.href = TG_URL;
+
+      // Footer
+      document.getElementById('footer-tg').innerHTML =
+        `<a href="${TG_URL}" target="_blank" rel="noopener">Telegram · @${CONFIG.telegram}</a>`;
+    }
+
+    // Lightbox
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+
+    function openLightbox(i) {
+      lightboxIndex = i;
+      lightboxImg.src = CONFIG.photos[i];
+      lightbox.classList.add('open');
+    }
+    function closeLightbox() { lightbox.classList.remove('open'); }
+    function nav(dir) {
+      lightboxIndex = (lightboxIndex + dir + CONFIG.photos.length) % CONFIG.photos.length;
+      lightboxImg.src = CONFIG.photos[lightboxIndex];
+    }
+
+    lightbox.addEventListener('click', (e) => {
+      if (e.target === lightbox || e.target.classList.contains('lb-close')) closeLightbox();
+    });
+    document.querySelector('.lb-prev').addEventListener('click', (e) => { e.stopPropagation(); nav(-1); });
+    document.querySelector('.lb-next').addEventListener('click', (e) => { e.stopPropagation(); nav(1); });
+    document.addEventListener('keydown', (e) => {
+      if (!lightbox.classList.contains('open')) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') nav(-1);
+      if (e.key === 'ArrowRight') nav(1);
+    });
+
+    // Initial render
+    render();
+  </script>
+
+</body>
+</html>
